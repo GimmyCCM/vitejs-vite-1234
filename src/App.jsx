@@ -12,6 +12,8 @@ const Loader2 = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" he
 const Search = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>;
 const RotateCcw = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>;
 const Check = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><polyline points="20 6 9 17 4 12"/></svg>;
+const ChevronLeft = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m15 18-6-6 6-6"/></svg>;
+const ChevronRight = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m9 18 6-6-6-6"/></svg>;
 
 // ----------------------------------------------------------------------
 // 🔧 第一階段：Firebase 設定區 
@@ -55,6 +57,10 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  
+  // 新增：用於控制目前顯示哪一張卡片 (一頁一張模式)
+  const [studyCardIndex, setStudyCardIndex] = useState(0);
+  const [bankCardIndex, setBankCardIndex] = useState(0);
 
   // 1. Firebase 身分驗證
   useEffect(() => {
@@ -84,6 +90,8 @@ export default function App() {
       (snapshot) => {
         const fetchedCards = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setSavedCards(fetchedCards.reverse());
+        // 如果刪除卡片導致目前索引超出範圍，則自動往前調整
+        setBankCardIndex(prev => prev >= fetchedCards.length ? Math.max(0, fetchedCards.length - 1) : prev);
       },
       (error) => console.error("讀取單字庫失敗:", error)
     );
@@ -92,7 +100,7 @@ export default function App() {
 
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-  // 3. 呼叫 Gemini API 生成單字卡 (已修改為呼叫 Vercel 安全後端)
+  // 3. 呼叫 Gemini API 生成單字卡 (防白屏崩潰版)
   const generateWords = async () => {
     if (!topic.trim()) {
       showError("請輸入你想學習的主題！(例如：機場、咖啡廳、商用英文)");
@@ -101,6 +109,7 @@ export default function App() {
     setLoading(true);
     setErrorMsg('');
     setCards([]);
+    setStudyCardIndex(0); // 重置輪播圖索引
 
     const promptText = `
       請身為一個專業的語言老師，幫我生成 5 個與「${topic}」相關的外語單字。
@@ -122,30 +131,45 @@ export default function App() {
 
     for (let i = 0; i < retries; i++) {
       try {
-        // 🚨 關鍵修改：從直接打 Google 變成打我們自己的 Vercel 後端 API
         const response = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt: promptText })
         });
 
+        // 讀取原始文字，避免非 JSON 格式導致解析崩潰 (白屏主因)
+        const responseText = await response.text();
+        let result;
+        
+        try {
+          result = JSON.parse(responseText);
+        } catch (parseError) {
+          throw new Error("伺服器回傳格式錯誤，請確定後端已正確設定。");
+        }
+
         if (!response.ok) {
-          throw new Error(`API 請求失敗 (狀態碼: ${response.status})`);
+          throw new Error(result.error?.message || `API 請求失敗 (${response.status})`);
         }
         
-        const result = await response.json();
-        
-        // 處理後端傳回來的資料
         let jsonText = "";
         if (result.candidates && result.candidates[0].content) {
             jsonText = result.candidates[0].content.parts[0].text;
         } else {
-            throw new Error("API 回傳格式不符預期");
+            throw new Error("AI 回傳的資料結構不符預期");
         }
         
-        // 清理可能包含 markdown 標記的字串
         jsonText = jsonText.replace(/```json/g, '').replace(/```/g, '').trim();
-        const generatedCards = JSON.parse(jsonText);
+        
+        let generatedCards;
+        try {
+          generatedCards = JSON.parse(jsonText);
+        } catch (e) {
+          throw new Error("無法解析 AI 回傳的單字資料。");
+        }
+
+        if (!Array.isArray(generatedCards) || generatedCards.length === 0) {
+          throw new Error("生成的單字卡為空，請換個主題試試。");
+        }
         
         setCards(generatedCards);
         setLoading(false);
@@ -153,7 +177,7 @@ export default function App() {
       } catch (err) {
         console.error("生成錯誤:", err);
         if (i === retries - 1) {
-          showError("生成失敗，請檢查 API Key 或稍後再試。錯誤：" + err.message);
+          showError("生成失敗：" + err.message);
           setLoading(false);
         } else {
           await sleep(delays[i]); 
@@ -186,12 +210,28 @@ export default function App() {
     }
   };
 
-  // 6. 語音朗讀功能 
+  // 6. 語音朗讀功能 (加入 Android/小米 瀏覽器修復機制)
   const speakWord = (text) => {
     if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US'; 
-      window.speechSynthesis.speak(utterance);
+      try {
+        // 先強制取消當前的語音，解決 Android 容易卡死的問題
+        window.speechSynthesis.cancel();
+        
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US'; 
+        utterance.rate = 0.9; // 稍微放慢一點點聽得更清楚
+        
+        // 嘗試抓取系統可用語音，提升相容性
+        const voices = window.speechSynthesis.getVoices();
+        if (voices.length > 0) {
+           const engVoice = voices.find(v => v.lang.includes('en-US') || v.lang.includes('en_US'));
+           if (engVoice) utterance.voice = engVoice;
+        }
+
+        window.speechSynthesis.speak(utterance);
+      } catch (err) {
+        showError("語音播放發生錯誤，請檢查系統音量。");
+      }
     } else {
       showError("您的瀏覽器不支援語音朗讀功能。");
     }
@@ -209,32 +249,32 @@ export default function App() {
   const isCardSaved = (word) => savedCards.some(card => card.word === word);
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-800 flex flex-col">
       <nav className="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md mx-auto px-4 sm:px-6">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
-              <div className="bg-indigo-500 p-2 rounded-lg">
-                <BookOpen className="w-6 h-6 text-white" />
+              <div className="bg-indigo-500 p-1.5 rounded-lg">
+                <BookOpen className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold tracking-tight">Killer Cards</span>
+              <span className="text-lg font-bold tracking-tight">Killer Cards</span>
             </div>
-            <div className="flex space-x-4">
+            <div className="flex space-x-2">
               <button 
                 onClick={() => setActiveTab('study')}
-                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'study' ? 'bg-indigo-600 text-white' : 'text-slate-300 hover:bg-slate-700 hover:text-white'}`}
+                className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${activeTab === 'study' ? 'bg-indigo-600 text-white' : 'text-slate-300 hover:bg-slate-700 hover:text-white'}`}
               >
-                <Search className="w-4 h-4 mr-2" />
-                學習區
+                <Search className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">學習區</span>
               </button>
               <button 
                 onClick={() => setActiveTab('bank')}
-                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'bank' ? 'bg-indigo-600 text-white' : 'text-slate-300 hover:bg-slate-700 hover:text-white'}`}
+                className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${activeTab === 'bank' ? 'bg-indigo-600 text-white' : 'text-slate-300 hover:bg-slate-700 hover:text-white'}`}
               >
-                <Library className="w-4 h-4 mr-2" />
-                單字庫
+                <Library className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">單字庫</span>
                 {savedCards.length > 0 && (
-                  <span className="ml-2 bg-rose-500 text-white text-xs px-2 py-0.5 rounded-full">
+                  <span className="ml-1.5 bg-rose-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
                     {savedCards.length}
                   </span>
                 )}
@@ -245,39 +285,38 @@ export default function App() {
       </nav>
 
       {errorMsg && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-rose-500 text-white px-6 py-3 rounded-full shadow-lg z-50 animate-bounce max-w-sm w-full text-center">
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-rose-500 text-white px-5 py-3 rounded-full shadow-lg z-50 animate-bounce w-[90%] max-w-sm text-center text-sm font-medium">
           {errorMsg}
         </div>
       )}
       {successMsg && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-emerald-500 text-white px-6 py-3 rounded-full shadow-lg z-50 flex items-center">
-          <Check className="w-4 h-4 mr-2" /> {successMsg}
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-emerald-500 text-white px-5 py-3 rounded-full shadow-lg z-50 flex items-center justify-center w-[90%] max-w-sm text-sm font-medium">
+          <Check className="w-4 h-4 mr-2 flex-shrink-0" /> {successMsg}
         </div>
       )}
 
-      <main className="max-w-5xl mx-auto px-4 py-8">
+      <main className="flex-1 w-full max-w-md mx-auto px-4 py-6 flex flex-col">
         {activeTab === 'study' && (
-          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 max-w-2xl mx-auto">
-              <h2 className="text-2xl font-bold text-slate-800 mb-2 text-center">召喚你的專屬單字卡</h2>
-              <p className="text-slate-500 text-center mb-6">輸入任何你想學習的主題，AI 將自動為你生成配圖與記憶法。</p>
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 flex-1 flex flex-col">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 w-full">
+              <h2 className="text-xl font-bold text-slate-800 mb-2 text-center">召喚專屬單字卡</h2>
               
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col gap-3">
                 <input 
                   type="text" 
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && generateWords()}
-                  placeholder="例如：漫威英雄、機場點餐、軟體工程師..." 
-                  className="flex-1 bg-slate-50 border border-slate-300 text-slate-900 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                  placeholder="輸入主題 (例如：機場點餐)" 
+                  className="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-base"
                 />
                 <button 
                   onClick={generateWords}
                   disabled={loading}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-xl shadow-md transition-all flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-xl shadow-md transition-all flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {loading ? (
-                    <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> 生成中</>
+                    <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> 生成中...</>
                   ) : (
                     <><Search className="w-5 h-5 mr-2" /> 生成卡片</>
                   )}
@@ -285,57 +324,98 @@ export default function App() {
               </div>
             </div>
 
+            {/* 手機版：單張卡片輪播模式 */}
             {cards.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {cards.map((card, index) => (
+              <div className="flex flex-col items-center justify-center flex-1 w-full">
+                <div className="w-full">
                   <FlashCard 
-                    key={index} 
-                    card={card} 
+                    card={cards[studyCardIndex]} 
                     onSpeak={speakWord} 
-                    onAction={() => saveCard(card)} 
-                    actionIcon={<Heart className={`w-5 h-5 ${isCardSaved(card.word) ? 'fill-rose-500 text-rose-500' : 'text-slate-400'}`} />}
-                    actionTooltip={isCardSaved(card.word) ? "已收藏" : "收藏"}
-                    isSaved={isCardSaved(card.word)}
+                    onAction={() => saveCard(cards[studyCardIndex])} 
+                    actionIcon={<Heart className={`w-5 h-5 ${isCardSaved(cards[studyCardIndex].word) ? 'fill-rose-500 text-rose-500' : 'text-slate-400'}`} />}
+                    actionTooltip={isCardSaved(cards[studyCardIndex].word) ? "已收藏" : "收藏"}
+                    isSaved={isCardSaved(cards[studyCardIndex].word)}
                   />
-                ))}
+                </div>
+                
+                {/* 輪播控制鈕 */}
+                <div className="flex items-center justify-between w-full mt-6 px-2">
+                  <button 
+                    onClick={() => setStudyCardIndex(prev => Math.max(0, prev - 1))}
+                    disabled={studyCardIndex === 0}
+                    className="p-3 bg-white border border-slate-200 rounded-full text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed shadow-sm active:scale-95 transition-all"
+                  >
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                  <span className="text-slate-500 font-medium tracking-wide">
+                    {studyCardIndex + 1} / {cards.length}
+                  </span>
+                  <button 
+                    onClick={() => setStudyCardIndex(prev => Math.min(cards.length - 1, prev + 1))}
+                    disabled={studyCardIndex === cards.length - 1}
+                    className="p-3 bg-white border border-slate-200 rounded-full text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed shadow-sm active:scale-95 transition-all"
+                  >
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
             )}
           </div>
         )}
 
         {activeTab === 'bank' && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold text-slate-800">我的專屬單字庫</h2>
-              <span className="bg-indigo-100 text-indigo-800 text-sm font-medium px-3 py-1 rounded-full">
-                共 {savedCards.length} 個單字
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 flex-1 flex flex-col">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-xl font-bold text-slate-800">我的專屬單字庫</h2>
+              <span className="bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-1 rounded-full">
+                共 {savedCards.length} 個
               </span>
             </div>
 
             {savedCards.length === 0 ? (
-              <div className="text-center py-20 bg-white rounded-2xl shadow-sm border border-slate-200">
-                <Library className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-xl font-medium text-slate-600">你的單字庫空空如也</h3>
-                <p className="text-slate-500 mt-2">快到「學習區」生成並收藏你喜歡的單字吧！</p>
+              <div className="text-center py-20 bg-white rounded-2xl shadow-sm border border-slate-200 flex-1 flex flex-col justify-center">
+                <Library className="w-14 h-14 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-slate-600">單字庫空空如也</h3>
+                <p className="text-slate-500 mt-2 text-sm">快到「學習區」生成並收藏單字吧！</p>
                 <button 
                   onClick={() => setActiveTab('study')}
-                  className="mt-6 text-indigo-600 font-medium hover:text-indigo-800 flex items-center justify-center mx-auto"
+                  className="mt-6 text-indigo-600 font-medium hover:text-indigo-800 flex items-center justify-center mx-auto text-sm"
                 >
                   前往學習區 <RotateCcw className="w-4 h-4 ml-1" />
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {savedCards.map((card) => (
+              <div className="flex flex-col items-center justify-center flex-1 w-full">
+                 <div className="w-full">
                   <FlashCard 
-                    key={card.id} 
-                    card={card} 
+                    card={savedCards[bankCardIndex]} 
                     onSpeak={speakWord} 
-                    onAction={() => deleteCard(card.id, card.word)} 
+                    onAction={() => deleteCard(savedCards[bankCardIndex].id, savedCards[bankCardIndex].word)} 
                     actionIcon={<Trash2 className="w-5 h-5 text-slate-400 group-hover/btn:text-rose-500 transition-colors" />}
                     actionTooltip="移除"
                   />
-                ))}
+                 </div>
+
+                 {/* 輪播控制鈕 */}
+                 <div className="flex items-center justify-between w-full mt-6 px-2">
+                  <button 
+                    onClick={() => setBankCardIndex(prev => Math.max(0, prev - 1))}
+                    disabled={bankCardIndex === 0}
+                    className="p-3 bg-white border border-slate-200 rounded-full text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed shadow-sm active:scale-95 transition-all"
+                  >
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                  <span className="text-slate-500 font-medium tracking-wide">
+                    {bankCardIndex + 1} / {savedCards.length}
+                  </span>
+                  <button 
+                    onClick={() => setBankCardIndex(prev => Math.min(savedCards.length - 1, prev + 1))}
+                    disabled={bankCardIndex === savedCards.length - 1}
+                    className="p-3 bg-white border border-slate-200 rounded-full text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed shadow-sm active:scale-95 transition-all"
+                  >
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -346,37 +426,45 @@ export default function App() {
 }
 
 // ----------------------------------------------------------------------
-// 🃏 獨立組件：3D 翻轉單字卡 (FlashCard)
+// 🃏 獨立組件：3D 翻轉單字卡 (FlashCard) - 高度已針對手機優化
 // ----------------------------------------------------------------------
 function FlashCard({ card, onSpeak, onAction, actionIcon, actionTooltip, isSaved }) {
   const encodedPrompt = encodeURIComponent(`Minimalist clean illustration of ${card.word}, vector art, white background`);
   const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=400&height=300&nologo=true`;
 
   return (
-    <div className="relative w-full h-96 [perspective:1000px] group cursor-pointer">
-      <div className="w-full h-full transition-transform duration-700 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)] relative">
+    // 將卡片高度調整為 h-[420px]，適應 6.5 吋手機螢幕比例
+    <div className="relative w-full h-[420px] max-w-sm mx-auto [perspective:1000px] group cursor-pointer" onClick={(e) => {
+        // 在手機上點擊卡片時觸發翻轉，阻止事件冒泡以免干擾內部按鈕
+        e.currentTarget.querySelector('.card-inner').classList.toggle('[transform:rotateY(180deg)]');
+    }}>
+      <div className="card-inner w-full h-full transition-transform duration-700 [transform-style:preserve-3d] relative md:group-hover:[transform:rotateY(180deg)]">
+        
+        {/* --- 卡片正面 --- */}
         <div className="absolute w-full h-full [backface-visibility:hidden] bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden flex flex-col">
-          <div className="h-48 w-full bg-slate-100 relative overflow-hidden">
+          <div className="h-[55%] w-full bg-slate-100 relative overflow-hidden shrink-0">
              <img src={imageUrl} alt={card.word} className="w-full h-full object-cover" loading="lazy" />
              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
              <button 
                 onClick={(e) => { e.stopPropagation(); onSpeak(card.word); }}
-                className="absolute bottom-3 right-3 bg-white/20 backdrop-blur-md hover:bg-white/40 text-white p-2 rounded-full transition-all"
+                className="absolute bottom-3 right-3 bg-white/20 backdrop-blur-md hover:bg-white/40 text-white p-3 rounded-full transition-all active:scale-90"
                 title="發音"
              >
-                <Volume2 className="w-5 h-5" />
+                <Volume2 className="w-6 h-6" />
              </button>
           </div>
           <div className="flex-1 p-6 flex flex-col items-center justify-center text-center">
             <h3 className="text-3xl font-extrabold text-slate-800 tracking-tight">{card.word}</h3>
-            <p className="text-slate-500 font-medium mt-2">{card.pinyin}</p>
+            <p className="text-slate-500 font-medium mt-2 text-lg">{card.pinyin}</p>
             <div className="mt-4 flex items-center text-sm text-indigo-500 font-medium opacity-70">
-              <RotateCcw className="w-4 h-4 mr-1" /> 游標移入翻轉
+              <RotateCcw className="w-4 h-4 mr-1" /> 點擊翻轉卡片
             </div>
           </div>
         </div>
+
+        {/* --- 卡片背面 --- */}
         <div className="absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] bg-slate-800 text-slate-50 rounded-2xl shadow-xl p-6 flex flex-col overflow-y-auto border-t-4 border-indigo-500">
-           <div className="flex justify-between items-start mb-4 border-b border-slate-700 pb-4">
+           <div className="flex justify-between items-start mb-4 border-b border-slate-700 pb-4 shrink-0">
               <div>
                 <h3 className="text-2xl font-bold text-white">{card.translation}</h3>
                 <p className="text-slate-400 text-sm mt-1">{card.word} • {card.pinyin}</p>
@@ -384,23 +472,24 @@ function FlashCard({ card, onSpeak, onAction, actionIcon, actionTooltip, isSaved
               <button 
                  onClick={(e) => { e.stopPropagation(); onAction(); }}
                  disabled={isSaved} 
-                 className="group/btn bg-slate-700 hover:bg-slate-600 p-2.5 rounded-full transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                 className="group/btn bg-slate-700 hover:bg-slate-600 p-3 rounded-full transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed active:scale-90"
                  title={actionTooltip}
               >
                  {actionIcon}
               </button>
            </div>
-           <div className="space-y-4 flex-1">
+           <div className="space-y-4 flex-1 overflow-y-auto pr-1">
               <div>
                 <div className="text-indigo-400 text-xs font-bold uppercase tracking-wider mb-1">📝 實用例句</div>
-                <p className="text-slate-200 text-sm leading-relaxed">{card.example}</p>
+                <p className="text-slate-200 text-[15px] leading-relaxed">{card.example}</p>
               </div>
               <div className="bg-slate-700/50 rounded-xl p-3 border border-slate-600">
                 <div className="text-amber-400 text-xs font-bold uppercase tracking-wider mb-1">💡 記憶法 / 拆解</div>
-                <p className="text-slate-300 text-sm leading-relaxed">{card.memoryTrick}</p>
+                <p className="text-slate-300 text-[15px] leading-relaxed">{card.memoryTrick}</p>
               </div>
            </div>
         </div>
+
       </div>
     </div>
   );
