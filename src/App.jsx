@@ -203,7 +203,7 @@ export default function App() {
   };
   const showSuccess = (msg) => {
     setSuccessMsg(msg);
-    setTimeout(() => setSuccessMsg(''), 3001);
+    setTimeout(() => setSuccessMsg(''), 3000);
   };
 
   const isCardSaved = (word) => savedCards.some(card => card.word === word);
