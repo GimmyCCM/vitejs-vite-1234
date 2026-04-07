@@ -1,218 +1,53 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // ----------------------------------------------------------------------
-// 🎨 內建圖示區1 (取代 lucide-react，免安裝套件)
+// 🎨 內建圖示區 (取代 lucide-react，免安裝套件)
 // ----------------------------------------------------------------------
-const Volume2 = (props) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-    <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-    <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-  </svg>
-);
-const Heart = (props) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-  </svg>
-);
-const Trash2 = (props) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <path d="M3 6h18" />
-    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-    <line x1="10" x2="10" y1="11" y2="17" />
-    <line x1="14" x2="14" y1="11" y2="17" />
-  </svg>
-);
-const BookOpen = (props) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-  </svg>
-);
-const Library = (props) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <path d="m16 6 4 14" />
-    <path d="M12 6v14" />
-    <path d="M8 8v12" />
-    <path d="M4 4v16" />
-  </svg>
-);
-const Loader2 = (props) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-  </svg>
-);
-const Search = (props) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <circle cx="11" cy="11" r="8" />
-    <path d="m21 21-4.3-4.3" />
-  </svg>
-);
-const RotateCcw = (props) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-    <path d="M3 3v5h5" />
-  </svg>
-);
-const Check = (props) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <polyline points="20 6 9 17 4 12" />
-  </svg>
-);
+const Volume2 = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>;
+const Heart = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>;
+const Trash2 = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>;
+const BookOpen = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>;
+const Library = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>;
+const Loader2 = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>;
+const Search = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>;
+const RotateCcw = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>;
+const Check = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><polyline points="20 6 9 17 4 12"/></svg>;
 
 // ----------------------------------------------------------------------
-// 🔧 第一階段：Firebase 設定區 (請在此替換你的設定檔)
+// 🔧 第一階段：Firebase 設定區 
 // ----------------------------------------------------------------------
 const myFirebaseConfig = {
-  apiKey: 'AIzaSyBPOiojivULTIprv9ouUUZZfdBKXoLXQzc',
-  authDomain: 'ccm-test-10b4a.firebaseapp.com',
-  projectId: 'ccm-test-10b4a',
-  storageBucket: 'ccm-test-10b4a.firebasestorage.app',
-  messagingSenderId: '802097180518',
-  appId: '1:802097180518:web:b37eecd3f70551d49662a7',
-  measurementId: 'G-Y34J6E5SP3',
+  apiKey: "AIzaSyBPOiojivULTIprv9ouUUZZfdBKXoLXQzc",
+  authDomain: "ccm-test-10b4a.firebaseapp.com",
+  projectId: "ccm-test-10b4a",
+  storageBucket: "ccm-test-10b4a.firebasestorage.app",
+  messagingSenderId: "802097180518",
+  appId: "1:802097180518:web:b37eecd3f70551d49662a7",
+  measurementId: "G-Y34J6E5SP3"
 };
 
 // --- 以下為系統自動處理 Firebase 初始化的程式碼 ---
-import { initializeApp } from 'firebase/app';
-import {
-  getAuth,
-  signInAnonymously,
-  onAuthStateChanged,
-  signInWithCustomToken,
-} from 'firebase/auth';
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  onSnapshot,
-  deleteDoc,
-  doc,
-} from 'firebase/firestore';
+import { initializeApp } from "firebase/app";
+import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "firebase/auth";
+import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "firebase/firestore";
 
-// 自動偵測 Canvas 環境或使用你的設定檔
-const firebaseConfig =
-  typeof __firebase_config !== 'undefined'
-    ? JSON.parse(__firebase_config)
-    : myFirebaseConfig;
+const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : myFirebaseConfig;
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'killer-cards-app';
-const apiKey = ''; // 執行環境會自動提供 Gemini API Key
 
 let app, auth, db;
 try {
-  // 避免重複初始化
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   db = getFirestore(app);
 } catch (error) {
-  console.error('Firebase 初始化失敗:', error);
+  console.error("Firebase 初始化失敗:", error);
 }
 
 // ----------------------------------------------------------------------
 // 🚀 第二階段：App 主程式 (Killer Cards)
 // ----------------------------------------------------------------------
 export default function App() {
-  const [activeTab, setActiveTab] = useState('study'); // 'study' | 'bank'
+  const [activeTab, setActiveTab] = useState('study'); 
   const [topic, setTopic] = useState('');
   const [cards, setCards] = useState([]);
   const [savedCards, setSavedCards] = useState([]);
@@ -221,71 +56,46 @@ export default function App() {
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  // 1. Firebase 身分驗證 (匿名登入)
+  // 1. Firebase 身分驗證
   useEffect(() => {
     if (!auth) return;
-
     const initAuth = async () => {
       try {
-        if (
-          typeof __initial_auth_token !== 'undefined' &&
-          __initial_auth_token
-        ) {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
           await signInWithCustomToken(auth, __initial_auth_token);
         } else {
           await signInAnonymously(auth);
         }
       } catch (err) {
-        console.error('登入失敗:', err);
+        console.error("登入失敗:", err);
       }
     };
     initAuth();
-
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
+    const unsubscribe = onAuthStateChanged(auth, setUser);
     return () => unsubscribe();
   }, []);
 
-  // 2. 監聽 Firebase 單字庫 (即時更新)
+  // 2. 監聽 Firebase 單字庫
   useEffect(() => {
     if (!user || !db) return;
-
-    // 依照規則使用專屬的使用者私有資料路徑
-    const cardsRef = collection(
-      db,
-      'artifacts',
-      appId,
-      'users',
-      user.uid,
-      'savedWords'
-    );
-
+    const cardsRef = collection(db, 'artifacts', appId, 'users', user.uid, 'savedWords');
     const unsubscribe = onSnapshot(
-      cardsRef,
+      cardsRef, 
       (snapshot) => {
-        const fetchedCards = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        // 在記憶體中進行反向排序 (最新的在最前面)
+        const fetchedCards = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setSavedCards(fetchedCards.reverse());
       },
-      (error) => {
-        console.error('讀取單字庫失敗:', error);
-      }
+      (error) => console.error("讀取單字庫失敗:", error)
     );
-
     return () => unsubscribe();
   }, [user]);
 
-  // 延遲重試 API 呼叫的輔助函數
-  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-  // 3. 呼叫 Gemini API 生成單字卡
+  // 3. 呼叫 Gemini API 生成單字卡 (已修改為呼叫 Vercel 安全後端)
   const generateWords = async () => {
     if (!topic.trim()) {
-      showError('請輸入你想學習的主題！(例如：機場、咖啡廳、商用英文)');
+      showError("請輸入你想學習的主題！(例如：機場、咖啡廳、商用英文)");
       return;
     }
     setLoading(true);
@@ -312,46 +122,41 @@ export default function App() {
 
     for (let i = 0; i < retries; i++) {
       try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-        const response = await fetch(url, {
+        // 🚨 關鍵修改：從直接打 Google 變成打我們自己的 Vercel 後端 API
+        const response = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: promptText }] }],
-            generationConfig: {
-              responseMimeType: 'application/json',
-              responseSchema: {
-                type: 'ARRAY',
-                items: {
-                  type: 'OBJECT',
-                  properties: {
-                    word: { type: 'STRING' },
-                    pinyin: { type: 'STRING' },
-                    translation: { type: 'STRING' },
-                    example: { type: 'STRING' },
-                    memoryTrick: { type: 'STRING' },
-                  },
-                },
-              },
-            },
-          }),
+          body: JSON.stringify({ prompt: promptText })
         });
 
-        if (!response.ok) throw new Error('API 請求失敗');
-
+        if (!response.ok) {
+          throw new Error(`API 請求失敗 (狀態碼: ${response.status})`);
+        }
+        
         const result = await response.json();
-        const jsonText = result.candidates[0].content.parts[0].text;
+        
+        // 處理後端傳回來的資料
+        let jsonText = "";
+        if (result.candidates && result.candidates[0].content) {
+            jsonText = result.candidates[0].content.parts[0].text;
+        } else {
+            throw new Error("API 回傳格式不符預期");
+        }
+        
+        // 清理可能包含 markdown 標記的字串
+        jsonText = jsonText.replace(/```json/g, '').replace(/```/g, '').trim();
         const generatedCards = JSON.parse(jsonText);
-
+        
         setCards(generatedCards);
         setLoading(false);
-        return; // 成功則跳出迴圈
+        return; 
       } catch (err) {
+        console.error("生成錯誤:", err);
         if (i === retries - 1) {
-          showError('生成失敗，請檢查 API Key 或稍後再試。');
+          showError("生成失敗，請檢查 API Key 或稍後再試。錯誤：" + err.message);
           setLoading(false);
         } else {
-          await sleep(delays[i]); // 指數退避重試
+          await sleep(delays[i]); 
         }
       }
     }
@@ -359,26 +164,13 @@ export default function App() {
 
   // 4. 儲存單字卡到 Firebase
   const saveCard = async (card) => {
-    if (!user || !db) {
-      showError('未登入或資料庫尚未連線，無法收藏。');
-      return;
-    }
+    if (!user || !db) return;
     try {
-      const cardsRef = collection(
-        db,
-        'artifacts',
-        appId,
-        'users',
-        user.uid,
-        'savedWords'
-      );
-      await addDoc(cardsRef, {
-        ...card,
-        savedAt: new Date().toISOString(),
-      });
+      const cardsRef = collection(db, 'artifacts', appId, 'users', user.uid, 'savedWords');
+      await addDoc(cardsRef, { ...card, savedAt: new Date().toISOString() });
       showSuccess(`已將 "${card.word}" 存入單字庫！`);
     } catch (err) {
-      showError('收藏失敗: ' + err.message);
+      showError("收藏失敗: " + err.message);
     }
   };
 
@@ -386,52 +178,38 @@ export default function App() {
   const deleteCard = async (id, word) => {
     if (!user || !db) return;
     try {
-      const docRef = doc(
-        db,
-        'artifacts',
-        appId,
-        'users',
-        user.uid,
-        'savedWords',
-        id
-      );
+      const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'savedWords', id);
       await deleteDoc(docRef);
       showSuccess(`已移除 "${word}"。`);
     } catch (err) {
-      showError('刪除失敗: ' + err.message);
+      showError("刪除失敗: " + err.message);
     }
   };
 
-  // 6. 語音朗讀功能 (瀏覽器原生 Text-to-Speech)
+  // 6. 語音朗讀功能 
   const speakWord = (text) => {
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(text);
-      // 嘗試設置為英文 (若學習其他語言可根據需求調整)
-      utterance.lang = 'en-US';
+      utterance.lang = 'en-US'; 
       window.speechSynthesis.speak(utterance);
     } else {
-      showError('您的瀏覽器不支援語音朗讀功能。');
+      showError("您的瀏覽器不支援語音朗讀功能。");
     }
   };
 
-  // 顯示提示訊息的輔助函數
   const showError = (msg) => {
     setErrorMsg(msg);
-    setTimeout(() => setErrorMsg(''), 3000);
+    setTimeout(() => setErrorMsg(''), 4000);
   };
   const showSuccess = (msg) => {
     setSuccessMsg(msg);
     setTimeout(() => setSuccessMsg(''), 3000);
   };
 
-  // 判斷單字是否已被收藏
-  const isCardSaved = (word) => {
-    return savedCards.some((card) => card.word === word);
-  };
+  const isCardSaved = (word) => savedCards.some(card => card.word === word);
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
-      {/* 頂部導航列 */}
       <nav className="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -439,29 +217,19 @@ export default function App() {
               <div className="bg-indigo-500 p-2 rounded-lg">
                 <BookOpen className="w-6 h-6 text-white" />
               </div>
-              <span className="text-xl font-bold tracking-tight">
-                Killer Cards
-              </span>
+              <span className="text-xl font-bold tracking-tight">Killer Cards</span>
             </div>
             <div className="flex space-x-4">
-              <button
+              <button 
                 onClick={() => setActiveTab('study')}
-                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === 'study'
-                    ? 'bg-indigo-600 text-white'
-                    : 'text-slate-300 hover:bg-slate-700 hover:text-white'
-                }`}
+                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'study' ? 'bg-indigo-600 text-white' : 'text-slate-300 hover:bg-slate-700 hover:text-white'}`}
               >
                 <Search className="w-4 h-4 mr-2" />
                 學習區
               </button>
-              <button
+              <button 
                 onClick={() => setActiveTab('bank')}
-                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === 'bank'
-                    ? 'bg-indigo-600 text-white'
-                    : 'text-slate-300 hover:bg-slate-700 hover:text-white'
-                }`}
+                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === 'bank' ? 'bg-indigo-600 text-white' : 'text-slate-300 hover:bg-slate-700 hover:text-white'}`}
               >
                 <Library className="w-4 h-4 mr-2" />
                 單字庫
@@ -476,9 +244,8 @@ export default function App() {
         </div>
       </nav>
 
-      {/* 提示訊息 */}
       {errorMsg && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-rose-500 text-white px-6 py-3 rounded-full shadow-lg z-50 animate-bounce">
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-rose-500 text-white px-6 py-3 rounded-full shadow-lg z-50 animate-bounce max-w-sm w-full text-center">
           {errorMsg}
         </div>
       )}
@@ -488,66 +255,46 @@ export default function App() {
         </div>
       )}
 
-      {/* 主要內容區 */}
       <main className="max-w-5xl mx-auto px-4 py-8">
-        {/* === 學習區 === */}
         {activeTab === 'study' && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* 搜尋/生成輸入框 */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 max-w-2xl mx-auto">
-              <h2 className="text-2xl font-bold text-slate-800 mb-2 text-center">
-                召喚你的專屬單字卡
-              </h2>
-              <p className="text-slate-500 text-center mb-6">
-                輸入任何你想學習的主題，AI 將自動為你生成配圖與記憶法。
-              </p>
-
+              <h2 className="text-2xl font-bold text-slate-800 mb-2 text-center">召喚你的專屬單字卡</h2>
+              <p className="text-slate-500 text-center mb-6">輸入任何你想學習的主題，AI 將自動為你生成配圖與記憶法。</p>
+              
               <div className="flex flex-col sm:flex-row gap-3">
-                <input
-                  type="text"
+                <input 
+                  type="text" 
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && generateWords()}
-                  placeholder="例如：漫威英雄、機場點餐、軟體工程師..."
+                  placeholder="例如：漫威英雄、機場點餐、軟體工程師..." 
                   className="flex-1 bg-slate-50 border border-slate-300 text-slate-900 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                 />
-                <button
+                <button 
                   onClick={generateWords}
                   disabled={loading}
                   className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-xl shadow-md transition-all flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {loading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" /> 生成中
-                    </>
+                    <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> 生成中</>
                   ) : (
-                    <>
-                      <Search className="w-5 h-5 mr-2" /> 生成卡片
-                    </>
+                    <><Search className="w-5 h-5 mr-2" /> 生成卡片</>
                   )}
                 </button>
               </div>
             </div>
 
-            {/* 生成結果展示區 */}
             {cards.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {cards.map((card, index) => (
-                  <FlashCard
-                    key={index}
-                    card={card}
-                    onSpeak={speakWord}
-                    onAction={() => saveCard(card)}
-                    actionIcon={
-                      <Heart
-                        className={`w-5 h-5 ${
-                          isCardSaved(card.word)
-                            ? 'fill-rose-500 text-rose-500'
-                            : 'text-slate-400'
-                        }`}
-                      />
-                    }
-                    actionTooltip={isCardSaved(card.word) ? '已收藏' : '收藏'}
+                  <FlashCard 
+                    key={index} 
+                    card={card} 
+                    onSpeak={speakWord} 
+                    onAction={() => saveCard(card)} 
+                    actionIcon={<Heart className={`w-5 h-5 ${isCardSaved(card.word) ? 'fill-rose-500 text-rose-500' : 'text-slate-400'}`} />}
+                    actionTooltip={isCardSaved(card.word) ? "已收藏" : "收藏"}
                     isSaved={isCardSaved(card.word)}
                   />
                 ))}
@@ -556,13 +303,10 @@ export default function App() {
           </div>
         )}
 
-        {/* === 單字庫區 === */}
         {activeTab === 'bank' && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold text-slate-800">
-                我的專屬單字庫
-              </h2>
+              <h2 className="text-2xl font-bold text-slate-800">我的專屬單字庫</h2>
               <span className="bg-indigo-100 text-indigo-800 text-sm font-medium px-3 py-1 rounded-full">
                 共 {savedCards.length} 個單字
               </span>
@@ -571,13 +315,9 @@ export default function App() {
             {savedCards.length === 0 ? (
               <div className="text-center py-20 bg-white rounded-2xl shadow-sm border border-slate-200">
                 <Library className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-xl font-medium text-slate-600">
-                  你的單字庫空空如也
-                </h3>
-                <p className="text-slate-500 mt-2">
-                  快到「學習區1」生成並收藏你喜歡的單字吧！
-                </p>
-                <button
+                <h3 className="text-xl font-medium text-slate-600">你的單字庫空空如也</h3>
+                <p className="text-slate-500 mt-2">快到「學習區」生成並收藏你喜歡的單字吧！</p>
+                <button 
                   onClick={() => setActiveTab('study')}
                   className="mt-6 text-indigo-600 font-medium hover:text-indigo-800 flex items-center justify-center mx-auto"
                 >
@@ -587,14 +327,12 @@ export default function App() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {savedCards.map((card) => (
-                  <FlashCard
-                    key={card.id}
-                    card={card}
-                    onSpeak={speakWord}
-                    onAction={() => deleteCard(card.id, card.word)}
-                    actionIcon={
-                      <Trash2 className="w-5 h-5 text-slate-400 group-hover/btn:text-rose-500 transition-colors" />
-                    }
+                  <FlashCard 
+                    key={card.id} 
+                    card={card} 
+                    onSpeak={speakWord} 
+                    onAction={() => deleteCard(card.id, card.word)} 
+                    actionIcon={<Trash2 className="w-5 h-5 text-slate-400 group-hover/btn:text-rose-500 transition-colors" />}
                     actionTooltip="移除"
                   />
                 ))}
@@ -610,106 +348,58 @@ export default function App() {
 // ----------------------------------------------------------------------
 // 🃏 獨立組件：3D 翻轉單字卡 (FlashCard)
 // ----------------------------------------------------------------------
-function FlashCard({
-  card,
-  onSpeak,
-  onAction,
-  actionIcon,
-  actionTooltip,
-  isSaved,
-}) {
-  // 自動產生 Pollinations.ai 圖片 URL，加入 nologo 與關鍵字優化
-  const encodedPrompt = encodeURIComponent(
-    `Minimalist clean illustration of ${card.word}, vector art, white background`
-  );
+function FlashCard({ card, onSpeak, onAction, actionIcon, actionTooltip, isSaved }) {
+  const encodedPrompt = encodeURIComponent(`Minimalist clean illustration of ${card.word}, vector art, white background`);
   const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=400&height=300&nologo=true`;
 
   return (
     <div className="relative w-full h-96 [perspective:1000px] group cursor-pointer">
-      {/* 內部 3D 容器 */}
       <div className="w-full h-full transition-transform duration-700 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)] relative">
-        {/* --- 卡片正面 --- */}
         <div className="absolute w-full h-full [backface-visibility:hidden] bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden flex flex-col">
-          {/* AI 圖片 */}
           <div className="h-48 w-full bg-slate-100 relative overflow-hidden">
-            <img
-              src={imageUrl}
-              alt={card.word}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-
-            {/* 發音按鈕 (正面) */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onSpeak(card.word);
-              }}
-              className="absolute bottom-3 right-3 bg-white/20 backdrop-blur-md hover:bg-white/40 text-white p-2 rounded-full transition-all"
-              title="發音"
-            >
-              <Volume2 className="w-5 h-5" />
-            </button>
+             <img src={imageUrl} alt={card.word} className="w-full h-full object-cover" loading="lazy" />
+             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+             <button 
+                onClick={(e) => { e.stopPropagation(); onSpeak(card.word); }}
+                className="absolute bottom-3 right-3 bg-white/20 backdrop-blur-md hover:bg-white/40 text-white p-2 rounded-full transition-all"
+                title="發音"
+             >
+                <Volume2 className="w-5 h-5" />
+             </button>
           </div>
-
-          {/* 正面文字區 */}
           <div className="flex-1 p-6 flex flex-col items-center justify-center text-center">
-            <h3 className="text-3xl font-extrabold text-slate-800 tracking-tight">
-              {card.word}
-            </h3>
+            <h3 className="text-3xl font-extrabold text-slate-800 tracking-tight">{card.word}</h3>
             <p className="text-slate-500 font-medium mt-2">{card.pinyin}</p>
             <div className="mt-4 flex items-center text-sm text-indigo-500 font-medium opacity-70">
               <RotateCcw className="w-4 h-4 mr-1" /> 游標移入翻轉
             </div>
           </div>
         </div>
-
-        {/* --- 卡片背面 --- */}
         <div className="absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] bg-slate-800 text-slate-50 rounded-2xl shadow-xl p-6 flex flex-col overflow-y-auto border-t-4 border-indigo-500">
-          <div className="flex justify-between items-start mb-4 border-b border-slate-700 pb-4">
-            <div>
-              <h3 className="text-2xl font-bold text-white">
-                {card.translation}
-              </h3>
-              <p className="text-slate-400 text-sm mt-1">
-                {card.word} • {card.pinyin}
-              </p>
-            </div>
-
-            {/* 動作按鈕 (收藏 / 刪除) */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onAction();
-              }}
-              disabled={isSaved} // 如果在學習區且已收藏，就停用按鈕
-              className="group/btn bg-slate-700 hover:bg-slate-600 p-2.5 rounded-full transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              title={actionTooltip}
-            >
-              {actionIcon}
-            </button>
-          </div>
-
-          <div className="space-y-4 flex-1">
-            <div>
-              <div className="text-indigo-400 text-xs font-bold uppercase tracking-wider mb-1">
-                📝 實用例句
+           <div className="flex justify-between items-start mb-4 border-b border-slate-700 pb-4">
+              <div>
+                <h3 className="text-2xl font-bold text-white">{card.translation}</h3>
+                <p className="text-slate-400 text-sm mt-1">{card.word} • {card.pinyin}</p>
               </div>
-              <p className="text-slate-200 text-sm leading-relaxed">
-                {card.example}
-              </p>
-            </div>
-
-            <div className="bg-slate-700/50 rounded-xl p-3 border border-slate-600">
-              <div className="text-amber-400 text-xs font-bold uppercase tracking-wider mb-1">
-                💡 記憶法 / 拆解
+              <button 
+                 onClick={(e) => { e.stopPropagation(); onAction(); }}
+                 disabled={isSaved} 
+                 className="group/btn bg-slate-700 hover:bg-slate-600 p-2.5 rounded-full transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                 title={actionTooltip}
+              >
+                 {actionIcon}
+              </button>
+           </div>
+           <div className="space-y-4 flex-1">
+              <div>
+                <div className="text-indigo-400 text-xs font-bold uppercase tracking-wider mb-1">📝 實用例句</div>
+                <p className="text-slate-200 text-sm leading-relaxed">{card.example}</p>
               </div>
-              <p className="text-slate-300 text-sm leading-relaxed">
-                {card.memoryTrick}
-              </p>
-            </div>
-          </div>
+              <div className="bg-slate-700/50 rounded-xl p-3 border border-slate-600">
+                <div className="text-amber-400 text-xs font-bold uppercase tracking-wider mb-1">💡 記憶法 / 拆解</div>
+                <p className="text-slate-300 text-sm leading-relaxed">{card.memoryTrick}</p>
+              </div>
+           </div>
         </div>
       </div>
     </div>
