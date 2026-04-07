@@ -26,7 +26,7 @@ export default function App() {
   // 顯示錯誤訊息 (自動隱藏)
   const showError = (msg) => {
     setErrorMsg(msg);
-    setTimeout(() => setErrorMsg(''), 5000);
+    setTimeout(() => setErrorMsg(''), 6000); // 稍微延長錯誤顯示時間方便閱讀
   };
 
   // 呼叫 API 生成單字卡 (徹底防白屏崩潰版)
@@ -74,20 +74,27 @@ export default function App() {
           throw new Error("伺服器回覆異常 (請確定 Vercel 部署成功)。");
         }
 
-        if (!response.ok) {
-          // 避免使用 ?. 語法以相容舊版手機瀏覽器
-          const errMsg = (result && result.error && result.error.message) ? result.error.message : `API 請求失敗 (${response.status})`;
-          throw new Error(errMsg);
+        // 🚨 修復重點：Vercel 會把 Google API 的錯誤包在 HTTP 200 裡面。
+        // 所以即使 response.ok 是 true，我們也要檢查 result 裡面有沒有 error 欄位！
+        if (!response.ok || (result && result.error)) {
+          const errMsg = (result && result.error && result.error.message) 
+            ? result.error.message 
+            : `API 請求失敗 (${response.status})`;
+          throw new Error(`Google API 拒絕請求: ${errMsg}`);
         }
         
-        // 安全提取資料 (不用 ?. 以防舊手機白屏)
+        // 安全提取資料
         let jsonText = "";
         if (result && result.candidates && result.candidates.length > 0 &&
             result.candidates[0].content && result.candidates[0].content.parts &&
             result.candidates[0].content.parts.length > 0) {
             jsonText = result.candidates[0].content.parts[0].text;
+        } else if (Array.isArray(result)) {
+            // 防呆：如果後端已經幫忙解析好，直接轉換
+            jsonText = JSON.stringify(result);
         } else {
-            throw new Error("AI 回傳的內容空白或格式不符預期。");
+            console.error("未知的回傳格式:", result);
+            throw new Error("AI 回傳的內容空白或格式不符預期，請重試。");
         }
         
         // 清理標籤
@@ -97,7 +104,7 @@ export default function App() {
         try {
           generatedCards = JSON.parse(jsonText);
         } catch (e) {
-          throw new Error("無法解析單字資料，請再試一次。");
+          throw new Error("無法解析單字資料，這通常是因為 AI 沒照格式回傳，請再試一次。");
         }
 
         if (!Array.isArray(generatedCards) || generatedCards.length === 0) {
